@@ -40,10 +40,10 @@ jobs:
         export OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
         review_output=$(dotnet run --project ./TestAppAICodeReview.csproj --review-code --file-list modified_files.txt)
         echo "$review_output"
-        # You can include logic to output the review results to a file or variable
+        echo "review_output=$review_output" >> $GITHUB_ENV  # Store the output in an environment variable
     
     - name: Echo Review Output
-      run: echo "$review_output"
+      run: echo "${{ env.review_output }}"
 
     - name: Post Review as PR Comment
       if: success()
@@ -54,4 +54,4 @@ jobs:
         -H "Authorization: token $GITHUB_TOKEN" \
         -H "Accept: application/vnd.github.v3+json" \
         https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
-        -d "$(jq -n --arg body "$review_output" '{body: $body}')"
+        -d "$(jq -n --arg body "${{ env.review_output }}" '{body: $body}')"
