@@ -1,0 +1,6 @@
+@TestAppAICodeReview_HostAddress = http://localhost:5246
+
+GET {{TestAppAICodeReview_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
