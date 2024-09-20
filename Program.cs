@@ -2,20 +2,32 @@ using Microsoft.EntityFrameworkCore;
 using TestAppAICodeReview.Data;
 using System.Globalization;
 using YourWebAPI.Services;
+using System.Text;
 
 
 // Check if the flag to review code is passed
 if (args.Contains("--review-code"))
 {
     // Read the code file(s) for review
-    string code = File.ReadAllText("path/to/codefile.cs");
+    string[] codeFiles = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.cs", SearchOption.AllDirectories);
+    StringBuilder allCode = new StringBuilder();
+
+    foreach (var file in codeFiles)
+    {
+        string code = File.ReadAllText(file);
+        allCode.AppendLine(code);
+    }
+
+    // Now you have all the code from the .cs files in a single string
+    string codeForReview = allCode.ToString();
+
 
     // Initialize the code reviewer
     var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
     var reviewer = new CodeReviewerService(apiKey);
 
     // Perform the review
-    var review = await reviewer.ReviewCodeAsync(code);
+    var review = await reviewer.ReviewCodeAsync(codeForReview);
 
     // Output the review to a file
     //await File.WriteAllTextAsync("review.txt", review);
