@@ -8,6 +8,10 @@ jobs:
   code_review:
     runs-on: ubuntu-latest
 
+    permissions:
+      pull-requests: write  # This gives permission to comment on PRs
+      contents: read  # Basic read permission for the repository
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
