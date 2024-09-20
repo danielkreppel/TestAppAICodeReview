@@ -8,19 +8,37 @@ using System.Text;
 // Check if the flag to review code is passed
 if (args.Contains("--review-code"))
 {
-    // Read the code file(s) for review
-    string[] codeFiles = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.cs", SearchOption.AllDirectories);
-    StringBuilder allCode = new StringBuilder();
-
-    foreach (var file in codeFiles)
+    // Check if file list argument is provided
+    var fileListArgIndex = Array.IndexOf(args, "--file-list") + 1;
+    if (fileListArgIndex <= 0 || fileListArgIndex >= args.Length)
     {
-        string code = File.ReadAllText(file);
-        allCode.AppendLine(code);
+        Console.WriteLine("File list argument is missing.");
+        return;
     }
 
-    // Now you have all the code from the .cs files in a single string
-    string codeForReview = allCode.ToString();
+    // Read the list of modified files from the file provided
+    var fileListPath = args[fileListArgIndex];
+    if (!File.Exists(fileListPath))
+    {
+        Console.WriteLine($"File list path '{fileListPath}' does not exist.");
+        return;
+    }
 
+    var changedFiles = File.ReadAllLines(fileListPath);
+    StringBuilder allCode = new StringBuilder();
+
+    foreach (var file in changedFiles)
+    {
+        // Make sure to only process .cs files
+        if (file.EndsWith(".cs") && File.Exists(file))
+        {
+            string code = File.ReadAllText(file);
+            allCode.AppendLine(code);
+        }
+    }
+
+    // Now you have all the code from the changed .cs files in a single string
+    string codeForReview = allCode.ToString();
 
     // Initialize the code reviewer
     var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
@@ -29,14 +47,12 @@ if (args.Contains("--review-code"))
     // Perform the review
     var review = await reviewer.ReviewCodeAsync(codeForReview);
 
-    // Output the review to a file
-    //await File.WriteAllTextAsync("review.txt", review);
-    
     // Output the review to the console (this can be captured in GitHub Actions)
     Console.WriteLine(review);
 
     return;
 }
+
 
 
 var builder = WebApplication.CreateBuilder(args);
