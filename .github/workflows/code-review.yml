@@ -37,22 +37,26 @@ jobs:
     - name: Run Code Review
       id: review
       run: |
-          export OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-          review_output=$(dotnet run --project ./TestAppAICodeReview.csproj --review-code --file-list modified_files.txt)
-          review_output_escaped=$(echo "$review_output" | sed 's/%/%25/g; s/\n/%0A/g; s/\r/%0D/g')
-          echo "review_output=$review_output_escaped" >> $GITHUB_ENV
+        export OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+        review_output=$(dotnet run --project ./TestAppAICodeReview.csproj --review-code --file-list modified_files.txt)
+        echo "$review_output" > review_output.txt  # Write the review output to a file
+        echo "Review output saved to file"
       
-    - name: Echo Review Output
-      run: echo "${{ env.review_output }}"
+      
+    - name: Echo Review Output for Debugging
+      run: cat review_output.txt  # Output the content of the file for debugging purposes
+      
 
     - name: Post Review as PR Comment
       if: success()
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        review_output=$(cat review_output.txt)  # Read the content from the file
         curl -X POST \
         -H "Authorization: token $GITHUB_TOKEN" \
         -H "Accept: application/vnd.github.v3+json" \
         https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
-        -d "$(jq -n --arg body "${{ env.review_output }}" '{body: $body}')"
+        -d "$(jq -n --arg body "$review_output" '{body: $body}')"
+    
     
