@@ -136,3 +136,6 @@ C:\Users\Daniel\repo\TestAppAICodeReview\obj\Debug\net8.0\refint\TestAppAICodeRe
 C:\Users\Daniel\repo\TestAppAICodeReview\obj\Debug\net8.0\TestAppAICodeReview.pdb
 C:\Users\Daniel\repo\TestAppAICodeReview\obj\Debug\net8.0\TestAppAICodeReview.genruntimeconfig.cache
 C:\Users\Daniel\repo\TestAppAICodeReview\obj\Debug\net8.0\ref\TestAppAICodeReview.dll
+C:\Users\Daniel\repo\TestAppAICodeReview\bin\Debug\net8.0\Newtonsoft.Json.dll
+C:\Users\Daniel\repo\TestAppAICodeReview\bin\Debug\net8.0\OpenAI_API.dll
+C:\Users\Daniel\repo\TestAppAICodeReview\obj\Debug\net8.0\TestAppAICodeReview.sourcelink.json

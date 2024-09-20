@@ -1,10 +1,30 @@
 using Microsoft.EntityFrameworkCore;
 using TestAppAICodeReview.Data;
 using System.Globalization;
+using YourWebAPI.Services;
 
 
-CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
-CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
+// Check if the flag to review code is passed
+if (args.Contains("--review-code"))
+{
+    // Read the code file(s) for review
+    string code = File.ReadAllText("path/to/codefile.cs");
+
+    // Initialize the code reviewer
+    var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+    var reviewer = new CodeReviewerService(apiKey);
+
+    // Perform the review
+    var review = await reviewer.ReviewCodeAsync(code);
+
+    // Output the review to a file
+    //await File.WriteAllTextAsync("review.txt", review);
+    
+    // Output the review to the console (this can be captured in GitHub Actions)
+    Console.WriteLine(review);
+
+    return;
+}
 
 
 var builder = WebApplication.CreateBuilder(args);
