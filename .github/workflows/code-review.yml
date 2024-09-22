@@ -1,4 +1,4 @@
-name: Code Review with ChatGPT
+name: AI Code Review
 
 on:
   pull_request:
@@ -7,6 +7,10 @@ on:
 jobs:
   code_review:
     runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: write  # This gives permission to comment on PRs
+      contents: read  # Basic read permission for the repository
 
     steps:
     - name: Checkout code
@@ -23,21 +27,36 @@ jobs:
     - name: Build the project
       run: dotnet build --no-restore
 
+    - name: Get list of modified files
+      id: files
+      run: |
+        git fetch origin ${{ github.event.pull_request.base.sha }}
+        git diff --name-only --diff-filter=AMR ${{ github.event.pull_request.base.sha }} ${{ github.sha }} > modified_files.txt
+    
+
     - name: Run Code Review
       id: review
       run: |
         export OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-        review_output=$(dotnet run --project ./TestAppAICodeReview.csproj --review-code)
-        echo "$review_output"
-        # You can include logic to output the review results to a file or variable
+        review_output=$(dotnet run --project ./TestAppAICodeReview.csproj --review-code --file-list modified_files.txt)
+        echo "$review_output" > review_output.txt  # Write the review output to a file
+        echo "Review output saved to file"
+      
+      
+    - name: Echo Review Output for Debugging
+      run: cat review_output.txt  # Output the content of the file for debugging purposes
+      
 
     - name: Post Review as PR Comment
       if: success()
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        review_output=$(cat review_output.txt)  # Read the content from the file
         curl -X POST \
         -H "Authorization: token $GITHUB_TOKEN" \
         -H "Accept: application/vnd.github.v3+json" \
         https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
-        -d '{"body": "'"$review_output"'"}'
+        -d "$(jq -n --arg body "$review_output" '{body: $body}')"
+    
+    

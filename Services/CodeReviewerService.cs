@@ -13,7 +13,7 @@ namespace YourWebAPI.Services
 
         public async Task<string> ReviewCodeAsync(string code)
         {
-            string prompt = $"Review the following C# code:\n\n{code}\n\nProvide suggestions and improvements.";
+            string prompt = $"Review the following C# code:\n\n{code}\n\n Provide feedback about possible issues and attention points, like hidden bugs difficult to spot on compile time.";
             
             var completion = await _openAIAPI.Completions.CreateCompletionAsync(
                 prompt, 
