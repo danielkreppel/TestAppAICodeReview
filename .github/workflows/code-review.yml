@@ -47,6 +47,7 @@ jobs:
         review_output=$(dotnet run --project ./TestAppAICodeReview.csproj --review-code --file-list modified_files.txt)
         echo "$review_output" > review_output.txt  # Write the review output to a file
         echo "Review output saved to file"
+        echo "$review_output"
       
       
     - name: Echo Review Output for Debugging
