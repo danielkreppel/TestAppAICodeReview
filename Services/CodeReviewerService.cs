@@ -14,6 +14,8 @@ namespace YourWebAPI.Services
         public async Task<string> ReviewCodeAsync(string code)
         {
             string prompt = $"Review the following C# code:\n\n{code}\n\n Provide feedback about possible issues.";
+
+            Console.WriteLine(prompt); // This will print the code that is being sent
             
             var completion = await _openAIAPI.Completions.CreateCompletionAsync(
                 prompt, 
