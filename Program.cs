@@ -3,6 +3,10 @@ using TestAppAICodeReview.Data;
 using System.Globalization;
 using YourWebAPI.Services;
 using System.Text;
+using Microsoft.CodeAnalysis.MSBuild;  // For MSBuildWorkspace
+using Microsoft.Build.Locator;         // For MSBuildLocator
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 
 // Check if the flag to review code is passed
@@ -25,11 +29,22 @@ if (args.Contains("--review-code"))
     }
 
     var changedFiles = File.ReadAllLines(fileListPath);
+    var allFilesForReview = new HashSet<string>(changedFiles); // Using a HashSet to avoid duplicates
+
+    // Analyze the solution using Roslyn to get all dependent files
+    var dependentFiles = await GetDependentFilesAsync(changedFiles);
+
+    // Add dependent files to the review set
+    foreach (var dependentFile in dependentFiles)
+    {
+        allFilesForReview.Add(dependentFile);
+    }
+
+    // Prepare the code for review
     StringBuilder allCode = new StringBuilder();
 
-    foreach (var file in changedFiles)
+    foreach (var file in allFilesForReview)
     {
-        // Make sure to only process .cs files
         if (file.EndsWith(".cs") && File.Exists(file))
         {
             string code = File.ReadAllText(file);
@@ -37,7 +52,7 @@ if (args.Contains("--review-code"))
         }
     }
 
-    // Now you have all the code from the changed .cs files in a single string
+    // Now you have all the code from the changed and dependent .cs files in a single string
     string codeForReview = allCode.ToString();
 
     // Initialize the code reviewer
@@ -53,7 +68,43 @@ if (args.Contains("--review-code"))
     return;
 }
 
+async Task<HashSet<string>> GetDependentFilesAsync(IEnumerable<string> changedFiles)
+{
+    var dependentFiles = new HashSet<string>();
+    using (var workspace = MSBuildWorkspace.Create())
+    {
+        // Adjust to the path of your .sln or .csproj file
+        var solutionPath = "./TestAppAICodeReview.sln"; 
+        var solution = await workspace.OpenSolutionAsync(solutionPath);
 
+        foreach (var project in solution.Projects)
+        {
+            foreach (var document in project.Documents)
+            {
+                var syntaxTree = await document.GetSyntaxTreeAsync();
+                if (syntaxTree == null)
+                    continue;
+
+                var root = await syntaxTree.GetRootAsync();
+                foreach (var changedFile in changedFiles)
+                {
+                    var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(changedFile);
+                    
+                    // Check if the current document references any of the changed files
+                    var hasReference = root.DescendantNodes().OfType<UsingDirectiveSyntax>()
+                        .Any(u => u.Name.ToString().Contains(fileNameWithoutExtension));
+
+                    if (hasReference)
+                    {
+                        dependentFiles.Add(document.FilePath);
+                    }
+                }
+            }
+        }
+    }
+
+    return dependentFiles;
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
