@@ -70,6 +70,9 @@ if (args.Contains("--review-code"))
 
 async Task<HashSet<string>> GetDependentFilesAsync(IEnumerable<string> changedFiles)
 {
+    // Register MSBuild to locate MSBuild on your system
+    MSBuildLocator.RegisterDefaults();
+
     var dependentFiles = new HashSet<string>();
     using (var workspace = MSBuildWorkspace.Create())
     {
