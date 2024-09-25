@@ -49,3 +49,20 @@ To set up this app locally or within your GitHub repository, follow the steps be
 
 
 ![AI Code Review](https://github.com/user-attachments/assets/38a783c4-2413-44f6-86e5-3244370be041)
+
+
+## Example
+
+1. **Making a change that does not causes build errors, however, is not coerent with the rest of the app context
+![image](https://github.com/user-attachments/assets/f6c15ed4-b7b8-4b7a-9f3d-c7ec9b68c8ae)
+
+2. **Create a new pull request:
+<img width="500" alt="image" src="https://github.com/user-attachments/assets/4b4ef8fa-3e37-4896-9ad1-5388af57a5d8">
+
+3. **Wait for the github action to run, call OpenAI with the changed files (including other dependent code files related) and prompt to review it:
+![image](https://github.com/user-attachments/assets/6cdc6b65-5bbb-4ce6-bad9-8c70b0113b1e)
+
+4. **AI suggestions are posted as a comment in the pull request, catching the issue realted to the latest change and many other suggestions:
+![image](https://github.com/user-attachments/assets/2d24a03e-4913-44ef-83f8-8744490fe025)
+
+   
